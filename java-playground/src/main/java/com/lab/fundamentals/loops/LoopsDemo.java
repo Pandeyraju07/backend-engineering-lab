@@ -1,38 +1,86 @@
 package com.lab.fundamentals.loops;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 /**
- * for, while, do-while, and enhanced for loops.
+ * HRMS payroll run — uses all four loop types in one optimized disbursement flow.
  */
 public class LoopsDemo {
 
+    private static final int BATCH_SIZE = 50;
+    private static final int MAX_BANK_RETRIES = 4;
+
     public static void main(String[] args) {
-        System.out.println("=== for loop ===");
-        for (int i = 1; i <= 5; i++) {
-            System.out.print(i + " ");
-        }
-        System.out.println();
+        PayrollRunResult result = runMonthlyPayroll(ForLoopDemo.buildSamplePayroll(120));
+        System.out.println(result);
+    }
 
-        System.out.println("=== while loop ===");
-        int count = 1;
-        while (count <= 5) {
-            System.out.print(count + " ");
-            count++;
-        }
-        System.out.println();
+    static PayrollRunResult runMonthlyPayroll(PayrollRecord[] employees) {
+        double totalDisbursed = 0;
+        int successCount = 0;
+        int failedCount = 0;
 
-        System.out.println("=== do-while loop ===");
-        int num = 1;
+        Queue<PayrollRecord> retryQueue = new ArrayDeque<>();
+        int batchCount = (employees.length + BATCH_SIZE - 1) / BATCH_SIZE;
+
+        for (int batch = 0; batch < batchCount; batch++) {
+            int start = batch * BATCH_SIZE;
+            int end = Math.min(start + BATCH_SIZE, employees.length);
+
+            for (int i = start; i < end; i++) {
+                PayrollRecord employee = employees[i];
+                double netPay = employee.netSalary();
+
+                if (netPay <= 0) {
+                    failedCount++;
+                    continue;
+                }
+
+                if (validateAndTransfer(employee)) {
+                    totalDisbursed += netPay;
+                    successCount++;
+                } else {
+                    retryQueue.offer(employee);
+                }
+            }
+        }
+
+        while (!retryQueue.isEmpty()) {
+            PayrollRecord employee = retryQueue.poll();
+            if (validateAndTransfer(employee)) {
+                totalDisbursed += employee.netSalary();
+                successCount++;
+            } else {
+                failedCount++;
+            }
+        }
+
+        return new PayrollRunResult(successCount, failedCount, totalDisbursed);
+    }
+
+    private static boolean validateAndTransfer(PayrollRecord employee) {
+        int attempt = 0;
+        boolean transferred;
+
         do {
-            System.out.print(num + " ");
-            num++;
-        } while (num <= 5);
-        System.out.println();
+            attempt++;
+            transferred = executeBankTransfer(employee, attempt);
+        } while (!transferred && attempt < MAX_BANK_RETRIES);
 
-        System.out.println("=== enhanced for loop ===");
-        int[] numbers = {10, 20, 30, 40, 50};
-        for (int n : numbers) {
-            System.out.print(n + " ");
+        return transferred;
+    }
+
+    private static boolean executeBankTransfer(PayrollRecord employee, int attempt) {
+        int accountScore = Math.abs(employee.employeeId().hashCode() + attempt) % 5;
+        return accountScore != 0;
+    }
+
+    record PayrollRunResult(int successCount, int failedCount, double totalDisbursed) {
+        @Override
+        public String toString() {
+            return "PayrollRun{success=%d, failed=%d, totalDisbursed=%.2f}"
+                    .formatted(successCount, failedCount, totalDisbursed);
         }
-        System.out.println();
     }
 }
