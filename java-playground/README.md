@@ -103,14 +103,19 @@ src/main/java/com/lab/
 
 ## How to Practice
 
-Each package contains a `*Demo.java` class with a `main` method. Open the topic package and add your code.
+Every `fundamentals` package has an HRMS-themed coding problem: focused concept demos, an integrating `*Demo` with `main`, and a matching `*DemoTest`. Open a topic package, run the demo, then study/extend the helpers.
 
-**Examples with starter code:**
+**Examples:**
+- `com.lab.fundamentals.variables.VariablesDemo`
 - `com.lab.fundamentals.loops.LoopsDemo`
 - `com.lab.fundamentals.arrays.ArraysDemo`
 - `com.lab.fundamentals.methods.MethodsDemo`
-- `com.lab.fundamentals.variables.VariablesDemo`
+- `com.lab.fundamentals.inheritance.InheritanceDemo`
 - `com.lab.fundamentals.hashmap.HashMapDemo`
+- `com.lab.fundamentals.streams.StreamsDemo`
+- `com.lab.fundamentals.datetime.DatetimeDemo`
+
+Run all fundamentals tests with `mvn test`.
 
 ## Run in IntelliJ
 

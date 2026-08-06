@@ -1,25 +1,57 @@
 package com.lab.fundamentals.hashmap;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * HashMap key-value storage — O(1) average get/put, not thread-safe.
+ * HRMS salary lookup — HashMap CRUD, compute/merge, and iteration in one flow.
  */
 public class HashMapDemo {
 
     public static void main(String[] args) {
-        Map<String, Integer> employeeSalaries = new HashMap<>();
+        SalaryMapResult result = runSalaryLookup();
+        System.out.println(result);
+    }
 
-        employeeSalaries.put("E001", 75000);
-        employeeSalaries.put("E002", 82000);
-        employeeSalaries.put("E003", 68000);
+    static SalaryMapResult runSalaryLookup() {
+        Map<String, Double> salaries = HashMapCrudDemo.seedSalaries();
 
-        System.out.println("Size: " + employeeSalaries.size());
-        System.out.println("E001 salary: " + employeeSalaries.get("E001"));
-        System.out.println("Contains E002: " + employeeSalaries.containsKey("E002"));
+        HashMapCrudDemo.putSalary(salaries, "E004", 90_000);
+        double e001 = HashMapCrudDemo.lookupSalary(salaries, "E001");
+        boolean hasE002 = HashMapCrudDemo.containsEmployee(salaries, "E002");
 
-        employeeSalaries.forEach((id, salary) ->
-                System.out.printf("%s -> %d%n", id, salary));
+        HashMapComputeDemo.ensureDefault(salaries, "E200");
+        double afterRaise = HashMapComputeDemo.applyRaise(salaries, "E001", 5_000);
+
+        int sizeAfterRemove = HashMapCrudDemo.removeEmployee(salaries, "E003");
+        double total = HashMapIterateDemo.sumSalaries(salaries);
+        int entryCount = HashMapIterateDemo.formatEntries(salaries).size();
+
+        return new SalaryMapResult(
+                e001,
+                hasE002,
+                afterRaise,
+                HashMapComputeDemo.DEFAULT_SALARY,
+                sizeAfterRemove,
+                total,
+                entryCount
+        );
+    }
+
+    record SalaryMapResult(
+            double lookedUpSalary,
+            boolean containsE002,
+            double raisedE001,
+            double defaultForNewHire,
+            int sizeAfterRemove,
+            double totalSalaries,
+            int formattedEntryCount
+    ) {
+        @Override
+        public String toString() {
+            return ("SalaryMapResult{lookup=%.2f, hasE002=%b, raisedE001=%.2f, default=%.2f, "
+                    + "size=%d, total=%.2f, entries=%d}")
+                    .formatted(lookedUpSalary, containsE002, raisedE001, defaultForNewHire,
+                            sizeAfterRemove, totalSalaries, formattedEntryCount);
+        }
     }
 }
